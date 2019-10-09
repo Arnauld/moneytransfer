@@ -1,7 +1,7 @@
 package banktransfert.infra.web;
 
 import banktransfert.core.account.Accounts;
-import banktransfert.core.account.DefaultAccounts;
+import banktransfert.core.account.InMemoryAccounts;
 import io.vertx.core.AbstractVerticle;
 import io.vertx.core.Promise;
 import io.vertx.core.json.JsonObject;
@@ -17,7 +17,15 @@ public class WebVerticle extends AbstractVerticle {
 
     // default ctor is used by vertx
     public WebVerticle() {
-        this(new DefaultAccounts());
+        // whereas this is an ugly approach, this overcomes the usage of multiple WebVerticle
+        // by ensuring all of them use the same underlying Repository, even concurrently...
+        // next step would be to use a dedicated Verticle for the Repository
+        this(singletonInMemoryAccounts());
+    }
+
+    private static final Accounts SINGLETON = new InMemoryAccounts();
+    private static synchronized Accounts singletonInMemoryAccounts() {
+        return SINGLETON;
     }
 
     public WebVerticle(Accounts accounts) {
