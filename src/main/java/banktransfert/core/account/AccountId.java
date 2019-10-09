@@ -41,4 +41,11 @@ public class AccountId {
     public String asString() {
         return raw;
     }
+
+    @Override
+    public String toString() {
+        return "AccountId{" +
+                "raw='" + raw + '\'' +
+                '}';
+    }
 }
