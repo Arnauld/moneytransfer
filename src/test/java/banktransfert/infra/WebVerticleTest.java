@@ -30,6 +30,8 @@ import java.util.Optional;
 import static banktransfert.core.account.AccountId.accountId;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoMoreInteractions;
+import static org.mockito.Mockito.verifyZeroInteractions;
 import static org.mockito.Mockito.when;
 
 @RunWith(VertxUnitRunner.class)
@@ -81,16 +83,15 @@ public class WebVerticleTest {
         WebClient client = WebClient.create(vertx);
         client.get(port, "localhost", "/account/w17")
                 .putHeader("Content-Type", "application/json")
-                .send(
-                        ar -> {
-                            assertThat(ar.succeeded()).isTrue();
-                            HttpResponse<Buffer> response = ar.result();
-                            assertThat(response.statusCode()).isEqualTo(200);
-                            assertThat(response.getHeader("Content-Type")).isEqualTo("application/json");
-                            JsonObject body = response.bodyAsJsonObject();
-                            assertThat(body.getString("account-id")).isEqualTo("w17");
-                            async.complete();
-                        });
+                .send(ar -> {
+                    assertThat(ar.succeeded()).isTrue();
+                    HttpResponse<Buffer> response = ar.result();
+                    assertThat(response.statusCode()).isEqualTo(200);
+                    assertThat(response.getHeader("Content-Type")).isEqualTo("application/json");
+                    JsonObject body = response.bodyAsJsonObject();
+                    assertThat(body.getString("account-id")).isEqualTo("w17");
+                    async.complete();
+                });
     }
 
     @Test
@@ -104,17 +105,16 @@ public class WebVerticleTest {
         WebClient client = WebClient.create(vertx);
         client.get(port, "localhost", "/account/w123456789w123456789w123456789w123456789")
                 .putHeader("Content-Type", "application/json")
-                .send(
-                        ar -> {
-                            context.assertTrue(ar.succeeded());
-                            HttpResponse<Buffer> response = ar.result();
-                            context.assertEquals(400, response.statusCode());
-                            context.assertEquals("application/json", response.getHeader("Content-Type"));
-                            JsonObject body = response.bodyAsJsonObject();
-                            context.assertEquals("invalid-account-id", body.getString("error"));
-                            context.assertEquals("w123456789w123456789w123456789w123456789", body.getString("account-id"));
-                            async.complete();
-                        });
+                .send(ar -> {
+                    context.assertTrue(ar.succeeded());
+                    HttpResponse<Buffer> response = ar.result();
+                    context.assertEquals(400, response.statusCode());
+                    context.assertEquals("application/json", response.getHeader("Content-Type"));
+                    JsonObject body = response.bodyAsJsonObject();
+                    context.assertEquals("invalid-account-id", body.getString("error"));
+                    context.assertEquals("w123456789w123456789w123456789w123456789", body.getString("account-id"));
+                    async.complete();
+                });
     }
 
     @Test
@@ -124,16 +124,15 @@ public class WebVerticleTest {
         when(accounts.findById(Mockito.any())).thenReturn(Optional.empty());
 
         WebClient client = WebClient.create(vertx);
-        client.get(port, "localhost", "/account/w17").send(
-                ar -> {
-                    context.assertTrue(ar.succeeded());
-                    HttpResponse<Buffer> response = ar.result();
-                    context.assertEquals(404, response.statusCode());
-                    JsonObject body = response.bodyAsJsonObject();
-                    context.assertTrue(body.getString("error").contains("account-not-found"));
-                    context.assertTrue(body.getString("account-id").contains("w17"));
-                    async.complete();
-                });
+        client.get(port, "localhost", "/account/w17").send(ar -> {
+            context.assertTrue(ar.succeeded());
+            HttpResponse<Buffer> response = ar.result();
+            context.assertEquals(404, response.statusCode());
+            JsonObject body = response.bodyAsJsonObject();
+            context.assertTrue(body.getString("error").contains("account-not-found"));
+            context.assertTrue(body.getString("account-id").contains("w17"));
+            async.complete();
+        });
     }
 
     @Test
@@ -145,20 +144,37 @@ public class WebVerticleTest {
         WebClient client = WebClient.create(vertx);
         client.post(port, "localhost", "/account")
                 .sendJsonObject(new JsonObject()
-                                .put("email", "hog@tyrna.nog"),
-                        ar -> {
-                            context.assertTrue(ar.succeeded());
-                            HttpResponse<Buffer> response = ar.result();
-                            context.assertEquals(201, response.statusCode());
-                            
-                            JsonObject body = response.bodyAsJsonObject();
-                            assertThat(body.getString("account-id")).isEqualTo("x17");
+                        .put("email", "hog@tyrna.nog"), ar -> {
+                    context.assertTrue(ar.succeeded());
+                    HttpResponse<Buffer> response = ar.result();
+                    context.assertEquals(201, response.statusCode());
 
-                            ArgumentCaptor<NewAccount> newAccountCaptor = ArgumentCaptor.forClass(NewAccount.class);
-                            verify(accounts).create(newAccountCaptor.capture());
-                            assertThat(newAccountCaptor.getValue().email()).isEqualTo(Email.email("hog@tyrna.nog").value());
-                            async.complete();
-                        });
+                    JsonObject body = response.bodyAsJsonObject();
+                    assertThat(body.getString("account-id")).isEqualTo("x17");
+
+                    ArgumentCaptor<NewAccount> newAccountCaptor = ArgumentCaptor.forClass(NewAccount.class);
+                    verify(accounts).create(newAccountCaptor.capture());
+                    assertThat(newAccountCaptor.getValue().email()).isEqualTo(Email.email("hog@tyrna.nog").value());
+                    async.complete();
+                });
+    }
+
+    @Test
+    public void create_an_account_with_an_invalid_json(TestContext context) {
+        final Async async = context.async();
+
+        WebClient client = WebClient.create(vertx);
+        client.post(port, "localhost", "/account")
+                .sendBuffer(Buffer.buffer("{\"email\":}"), ar -> {
+                    context.assertTrue(ar.succeeded());
+                    HttpResponse<Buffer> response = ar.result();
+                    context.assertEquals(400, response.statusCode());
+
+                    JsonObject body = response.bodyAsJsonObject();
+                    assertThat(body.getString("error")).isEqualTo("invalid-json-format");
+                    verifyZeroInteractions(accounts);
+                    async.complete();
+                });
     }
 
 }

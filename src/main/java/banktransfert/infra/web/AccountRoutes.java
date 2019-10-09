@@ -31,11 +31,11 @@ public class AccountRoutes {
 
     public void init(Router router) {
         router.get("/account/:accountId").handler(rc -> findAccountById(rc, rc.request().getParam("accountId")));
-        router.post("/account").handler(rc -> createAccount(rc, rc.getBodyAsJson()));
+        router.post("/account").handler(rc -> createAccount(rc));
     }
 
-    private void createAccount(RoutingContext rc, JsonObject content) {
-        Status<Failure, NewAccount> newAccountOr = toNewAccount(content);
+    private void createAccount(RoutingContext rc) {
+        Status<Failure, NewAccount> newAccountOr = toNewAccount(rc);
         if (!newAccountOr.succeeded()) {
             replyInvalidNewAccount(rc, newAccountOr.error());
             return;
@@ -96,7 +96,14 @@ public class AccountRoutes {
                         .put("account-id", rawAccountId));
     }
 
-    private Status<Failure, NewAccount> toNewAccount(JsonObject content) {
+    private Status<Failure, NewAccount> toNewAccount(RoutingContext rc) {
+        JsonObject content;
+        try {
+            content = rc.getBodyAsJson();
+        } catch (Exception e) {
+            return Status.failure("invalid-json-format");
+        }
+
         Status<Failure, Email> emailOr = Email.email(content.getString("email"));
         if (!emailOr.succeeded())
             return Status.error(emailOr.error());
