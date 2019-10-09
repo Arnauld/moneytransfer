@@ -2,6 +2,7 @@ package banktransfert.infra.web;
 
 import banktransfert.core.account.Accounts;
 import banktransfert.core.account.InMemoryAccounts;
+import banktransfert.core.account.UUIDAccountIdGenerator;
 import io.vertx.core.AbstractVerticle;
 import io.vertx.core.Promise;
 import io.vertx.core.json.JsonObject;
@@ -23,7 +24,8 @@ public class WebVerticle extends AbstractVerticle {
         this(singletonInMemoryAccounts());
     }
 
-    private static final Accounts SINGLETON = new InMemoryAccounts();
+    private static final Accounts SINGLETON = new InMemoryAccounts(new UUIDAccountIdGenerator());
+
     private static synchronized Accounts singletonInMemoryAccounts() {
         return SINGLETON;
     }
