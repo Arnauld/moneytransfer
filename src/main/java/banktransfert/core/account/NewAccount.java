@@ -10,4 +10,8 @@ public class NewAccount {
         this.email = email;
         this.fullName = fullName;
     }
+
+    public Email email() {
+        return email;
+    }
 }

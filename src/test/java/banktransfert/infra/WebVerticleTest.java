@@ -1,8 +1,12 @@
 package banktransfert.infra;
 
 
+import banktransfert.core.Email;
+import banktransfert.core.Status;
 import banktransfert.core.account.Account;
+import banktransfert.core.account.AccountId;
 import banktransfert.core.account.Accounts;
+import banktransfert.core.account.NewAccount;
 import banktransfert.infra.web.WebVerticle;
 import io.vertx.core.DeploymentOptions;
 import io.vertx.core.Vertx;
@@ -17,6 +21,7 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.Mockito;
 
 import java.security.SecureRandom;
@@ -24,6 +29,7 @@ import java.util.Optional;
 
 import static banktransfert.core.account.AccountId.accountId;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @RunWith(VertxUnitRunner.class)
@@ -128,6 +134,31 @@ public class WebVerticleTest {
                     context.assertTrue(body.getString("account-id").contains("w17"));
                     async.complete();
                 });
+    }
+
+    @Test
+    public void create_an_account(TestContext context) {
+        final Async async = context.async();
+
+        when(accounts.create(Mockito.any())).thenReturn(Status.ok(AccountId.accountId("x17").value()));
+
+        WebClient client = WebClient.create(vertx);
+        client.post(port, "localhost", "/account")
+                .sendJsonObject(new JsonObject()
+                                .put("email", "hog@tyrna.nog"),
+                        ar -> {
+                            context.assertTrue(ar.succeeded());
+                            HttpResponse<Buffer> response = ar.result();
+                            context.assertEquals(201, response.statusCode());
+                            
+                            JsonObject body = response.bodyAsJsonObject();
+                            assertThat(body.getString("account-id")).isEqualTo("x17");
+
+                            ArgumentCaptor<NewAccount> newAccountCaptor = ArgumentCaptor.forClass(NewAccount.class);
+                            verify(accounts).create(newAccountCaptor.capture());
+                            assertThat(newAccountCaptor.getValue().email()).isEqualTo(Email.email("hog@tyrna.nog").value());
+                            async.complete();
+                        });
     }
 
 }
