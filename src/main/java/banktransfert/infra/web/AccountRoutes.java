@@ -31,7 +31,7 @@ public class AccountRoutes {
 
     public void init(Router router) {
         router.get("/account/:accountId").handler(rc -> findAccountById(rc, rc.request().getParam("accountId")));
-        router.post("/account").handler(rc -> createAccount(rc));
+        router.post("/account").handler(this::createAccount);
     }
 
     private void createAccount(RoutingContext rc) {
@@ -105,12 +105,8 @@ public class AccountRoutes {
         }
 
         Status<Failure, Email> emailOr = Email.email(content.getString("email"));
-        if (!emailOr.succeeded())
-            return Status.error(emailOr.error());
-
         String fullName = content.getString("fullName");
-        NewAccount newAccount = new NewAccount(emailOr.value(), fullName);
-        return Status.ok(newAccount);
+        return NewAccount.newAccount(emailOr, fullName);
     }
 
     private JsonObject toDto(Account account) {
