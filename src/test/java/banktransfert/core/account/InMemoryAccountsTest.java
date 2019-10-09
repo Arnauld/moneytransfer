@@ -29,7 +29,7 @@ public class InMemoryAccountsTest {
         when(accountIdGenerator.newAccountId()).thenReturn(ACCOUNT_ID1);
 
         NewAccount newAccount = NewAccount.newAccount(Email.email("titania@tyrna.nog"), "Titania").value();
-        Status<Failure, AccountId> accountIdStatus = accounts.create(newAccount);
+        Status<Failure, AccountId> accountIdStatus = accounts.add(newAccount);
         assertThat(accountIdStatus.succeeded()).isTrue();
         assertThat(accountIdStatus.value().asString()).isNotBlank();
     }
@@ -40,8 +40,8 @@ public class InMemoryAccountsTest {
 
         NewAccount newAccount1 = NewAccount.newAccount(Email.email("titania@tyrna.nog"), "Titania").value();
         NewAccount newAccount2 = NewAccount.newAccount(Email.email("oberon@tyrna.nog"), "Oberon").value();
-        Status<Failure, AccountId> accountIdStatus1 = accounts.create(newAccount1);
-        Status<Failure, AccountId> accountIdStatus2 = accounts.create(newAccount2);
+        Status<Failure, AccountId> accountIdStatus1 = accounts.add(newAccount1);
+        Status<Failure, AccountId> accountIdStatus2 = accounts.add(newAccount2);
         assertThat(accountIdStatus1.value()).isNotEqualTo(accountIdStatus2.value());
         assertThat(accountIdStatus1.value()).isEqualTo(ACCOUNT_ID1);
         assertThat(accountIdStatus2.value()).isEqualTo(ACCOUNT_ID2);
@@ -52,8 +52,8 @@ public class InMemoryAccountsTest {
         when(accountIdGenerator.newAccountId()).thenReturn(ACCOUNT_ID1, ACCOUNT_ID2);
 
         NewAccount newAccount = NewAccount.newAccount(Email.email("titania@tyrna.nog"), "Titania").value();
-        Status<Failure, AccountId> accountIdStatus1 = accounts.create(newAccount);
-        Status<Failure, AccountId> accountIdStatus2 = accounts.create(newAccount);
+        Status<Failure, AccountId> accountIdStatus1 = accounts.add(newAccount);
+        Status<Failure, AccountId> accountIdStatus2 = accounts.add(newAccount);
         assertThat(accountIdStatus1.succeeded()).isTrue();
         assertThat(accountIdStatus2.succeeded()).isFalse();
         assertThat(accountIdStatus2.error().error()).isEqualTo("email-already-inuse");

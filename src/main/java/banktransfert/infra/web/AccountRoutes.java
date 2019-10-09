@@ -40,7 +40,7 @@ public class AccountRoutes {
             replyInvalidNewAccount(rc, newAccountOr.error());
             return;
         }
-        Status<Failure, AccountId> createdOr = accounts.create(newAccountOr.value());
+        Status<Failure, AccountId> createdOr = accounts.add(newAccountOr.value());
         if (!createdOr.succeeded()) {
             replyNewAccountFailed(rc, createdOr.error());
             return;

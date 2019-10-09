@@ -11,5 +11,5 @@ import java.util.Optional;
 public interface Accounts {
     Optional<Account> findById(AccountId accountId);
 
-    Status<Failure, AccountId> create(NewAccount newAccount);
+    Status<Failure, AccountId> add(NewAccount newAccount);
 }

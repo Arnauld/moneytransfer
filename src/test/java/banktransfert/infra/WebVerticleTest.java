@@ -140,7 +140,7 @@ public class WebVerticleTest {
     public void create_an_account(TestContext context) {
         final Async async = context.async();
 
-        when(accounts.create(Mockito.any())).thenReturn(Status.ok(AccountId.accountId("x17").value()));
+        when(accounts.add(Mockito.any())).thenReturn(Status.ok(AccountId.accountId("x17").value()));
 
         WebClient client = WebClient.create(vertx);
         client.post(port, "localhost", "/account")
@@ -154,7 +154,7 @@ public class WebVerticleTest {
                     assertThat(body.getString("account-id")).isEqualTo("x17");
 
                     ArgumentCaptor<NewAccount> newAccountCaptor = ArgumentCaptor.forClass(NewAccount.class);
-                    verify(accounts).create(newAccountCaptor.capture());
+                    verify(accounts).add(newAccountCaptor.capture());
                     assertThat(newAccountCaptor.getValue().email()).isEqualTo(Email.email("hog@tyrna.nog").value());
                     async.complete();
                 });

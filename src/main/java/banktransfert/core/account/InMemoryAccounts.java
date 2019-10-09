@@ -26,7 +26,7 @@ public class InMemoryAccounts implements Accounts {
     }
 
     @Override
-    public Status<Failure, AccountId> create(NewAccount newAccount) {
+    public Status<Failure, AccountId> add(NewAccount newAccount) {
         Email email = newAccount.email();
         AccountId accountId = idGenerator.newAccountId();
         Account account = new Account(accountId, email, newAccount.fullName());
