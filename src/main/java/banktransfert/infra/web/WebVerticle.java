@@ -1,7 +1,7 @@
 package banktransfert.infra.web;
 
-import banktransfert.core.account.AccountService;
-import banktransfert.core.account.DefaultAccountService;
+import banktransfert.core.account.Accounts;
+import banktransfert.core.account.DefaultAccounts;
 import io.vertx.core.AbstractVerticle;
 import io.vertx.core.Promise;
 import io.vertx.core.json.JsonObject;
@@ -10,43 +10,45 @@ import io.vertx.ext.web.handler.BodyHandler;
 
 public class WebVerticle extends AbstractVerticle {
     public static final String HTTP_PORT = "http.port";
+    private static final long MAX_BODY_SIZE_IN_BYTES = 4048;
+    private static final String APPLICATION_JSON = "application/json";
     //
-    private final AccountService accountService;
+    private final Accounts accounts;
 
     // default ctor is used by vertx
     public WebVerticle() {
-        this(new DefaultAccountService());
+        this(new DefaultAccounts());
     }
 
-    public WebVerticle(AccountService accountService) {
-        this.accountService = accountService;
+    public WebVerticle(Accounts accounts) {
+        this.accounts = accounts;
     }
 
     @Override
-    public void start(Promise<Void> fut) {
+    public void start(Promise<Void> startPromise) {
         JsonObject config = context.config();
 
         Integer port = config.getInteger("http.port", 8080);
 
         Router router = initRouter();
         new PingRoutes(vertx).init(router);
-        new AccountRoutes(vertx, accountService).init(router);
+        new AccountRoutes(vertx, accounts).init(router);
         vertx.createHttpServer()
                 .requestHandler(router)
                 .listen(port, result -> {
                     if (result.succeeded()) {
-                        fut.complete();
+                        startPromise.complete();
                     } else {
-                        fut.fail(result.cause());
+                        startPromise.fail(result.cause());
                     }
                 });
     }
 
     protected Router initRouter() {
         Router router = Router.router(vertx);
-        router.route().consumes("application/json");
-        router.route().produces("application/json");
-        router.route().handler(BodyHandler.create());
+        router.route().consumes(APPLICATION_JSON);
+        router.route().produces(APPLICATION_JSON);
+        router.route().handler(BodyHandler.create().setBodyLimit(MAX_BODY_SIZE_IN_BYTES));
         return router;
     }
 

@@ -1,14 +1,19 @@
 package banktransfert.core.account;
 
+import banktransfert.core.Failure;
+import banktransfert.core.Status;
+
 /**
  * @author <a href="http://twitter.com/aloyer">@aloyer</a>
  */
 public class AccountId {
 
-    public static AccountId accountId(String asString) {
+    public static Status<Failure, AccountId> accountId(String asString) {
         if (asString == null)
-            throw new IllegalArgumentException("AccountId cannot be null");
-        return new AccountId(asString);
+            return Status.failure("Invalid accountId: cannot be null");
+        if (asString.length() > 36)
+            return Status.failure("Invalid accountId: max length exceeded");
+        return Status.ok(new AccountId(asString));
     }
 
     private final String raw;
