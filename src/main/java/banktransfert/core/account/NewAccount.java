@@ -23,4 +23,8 @@ public class NewAccount {
     public Email email() {
         return email;
     }
+
+    public String fullName() {
+        return fullName;
+    }
 }

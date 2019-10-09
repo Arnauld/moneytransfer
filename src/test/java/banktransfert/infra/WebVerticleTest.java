@@ -30,12 +30,13 @@ import java.util.Optional;
 import static banktransfert.core.account.AccountId.accountId;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.verifyZeroInteractions;
 import static org.mockito.Mockito.when;
 
 @RunWith(VertxUnitRunner.class)
 public class WebVerticleTest {
+
+    private static final Email EMAIL = Email.email("puck@tyrna.nog").value();
 
     private Vertx vertx;
     private int port;
@@ -78,7 +79,7 @@ public class WebVerticleTest {
     public void consult_an_existing_account(TestContext context) {
         final Async async = context.async();
 
-        when(accounts.findById(Mockito.any())).thenReturn(Optional.of(new Account(accountId("w17").value())));
+        when(accounts.findById(Mockito.any())).thenReturn(Optional.of(new Account(accountId("w17").value(), EMAIL, "Puck")));
 
         WebClient client = WebClient.create(vertx);
         client.get(port, "localhost", "/account/w17")
