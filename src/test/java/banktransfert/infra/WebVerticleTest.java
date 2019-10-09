@@ -177,4 +177,22 @@ public class WebVerticleTest {
                 });
     }
 
+    @Test
+    public void create_an_account_with_an_missing_mandatory_data(TestContext context) {
+        final Async async = context.async();
+
+        WebClient client = WebClient.create(vertx);
+        client.post(port, "localhost", "/account")
+                .sendBuffer(Buffer.buffer("{\"fullname\":\"Titania\"}"), ar -> {
+                    context.assertTrue(ar.succeeded());
+                    HttpResponse<Buffer> response = ar.result();
+                    context.assertEquals(400, response.statusCode());
+
+                    JsonObject body = response.bodyAsJsonObject();
+                    assertThat(body.getString("error")).isEqualTo("no-email-provided");
+                    verifyZeroInteractions(accounts);
+                    async.complete();
+                });
+    }
+
 }
