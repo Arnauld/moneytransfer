@@ -1,8 +1,5 @@
 package banktransfert.core;
 
-/**
- * @author <a href="http://twitter.com/aloyer">@aloyer</a>
- */
 public interface Status<E, T> {
     static <E, T> Status<E, T> ok(T value) {
         return new Ok<>(value);
