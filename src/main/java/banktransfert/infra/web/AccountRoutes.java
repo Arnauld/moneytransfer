@@ -1,16 +1,15 @@
 package banktransfert.infra.web;
 
-import banktransfert.core.account.AccountId;
 import banktransfert.core.Email;
 import banktransfert.core.Failure;
 import banktransfert.core.Status;
-import banktransfert.core.account.Account;
-import banktransfert.core.account.Accounts;
-import banktransfert.core.account.NewAccount;
+import banktransfert.core.account.*;
 import io.vertx.core.Vertx;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.Router;
 import io.vertx.ext.web.RoutingContext;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.math.BigDecimal;
 import java.util.Optional;
@@ -22,17 +21,59 @@ import static java.net.HttpURLConnection.HTTP_NOT_FOUND;
 import static java.net.HttpURLConnection.HTTP_OK;
 
 public class AccountRoutes {
+    private static final Logger LOGGER = LoggerFactory.getLogger(AccountRoutes.class);
+
     private final Vertx vertx;
     private final Accounts accounts;
+    private final MoneyTransferService moneyTransferService;
 
-    public AccountRoutes(Vertx vertx, Accounts accounts) {
+    public AccountRoutes(Vertx vertx, Accounts accounts, MoneyTransferService moneyTransferService) {
         this.vertx = vertx;
         this.accounts = accounts;
+        this.moneyTransferService = moneyTransferService;
     }
 
     public void init(Router router) {
         router.get("/account/:accountId").handler(rc -> findAccountById(rc, rc.request().getParam("accountId")));
         router.post("/account").handler(this::createAccount);
+        router.post("/transfer").handler(this::transfer);
+    }
+
+    private void transfer(RoutingContext rc) {
+        LOGGER.info("About to transfer money...");
+        Status<Failure, MoneyTransfer> moneyTransferOr = toMoneyTransfer(rc);
+        if (!moneyTransferOr.succeeded()) {
+            replyInvalidTransfer(rc, moneyTransferOr.error());
+            return;
+        }
+
+        MoneyTransfer moneyTransfer = moneyTransferOr.value();
+        Status<Failure, TransactionId> transferOr = moneyTransferService.transfer(moneyTransfer);
+
+        if (!transferOr.succeeded()) {
+            replyTransferFailed(rc, transferOr.error());
+            return;
+        }
+        replyTransferCreated(rc, transferOr.value());
+    }
+
+    private void replyTransferCreated(RoutingContext rc, TransactionId transactionId) {
+        writeJson(rc, HTTP_CREATED,
+                new JsonObject().put("transaction-id", transactionId.asString()));
+    }
+
+    private void replyTransferFailed(RoutingContext rc, Failure error) {
+        writeJson(rc, HTTP_BAD_REQUEST,
+                new JsonObject()
+                        .put("error", "transfer-failed")
+                        .put("details", error.error()));
+    }
+
+    private void replyInvalidTransfer(RoutingContext rc, Failure error) {
+        writeJson(rc, HTTP_BAD_REQUEST,
+                new JsonObject()
+                        .put("error", "invalid-transfer")
+                        .put("details", error.error()));
     }
 
     private void createAccount(RoutingContext rc) {
@@ -108,6 +149,33 @@ public class AccountRoutes {
         Status<Failure, Email> emailOr = Email.email(content.getString("email"));
         String fullName = content.getString("fullName");
         return NewAccount.newAccount(emailOr, BigDecimal.ZERO);
+    }
+
+    private Status<Failure, MoneyTransfer> toMoneyTransfer(RoutingContext rc) {
+        JsonObject content;
+        try {
+            content = rc.getBodyAsJson();
+        } catch (Exception e) {
+            return Status.failure("invalid-json-format");
+        }
+
+        Status<Failure, TransactionId> transactionIdOr = TransactionId.transactionId(content.getString("transaction-id"));
+        Status<Failure, AccountId> accountSrcId = AccountId.accountId(content.getString("source-id"));
+        Status<Failure, AccountId> accountDstId = AccountId.accountId(content.getString("destination-id"));
+        Status<Failure, BigDecimal> amountOr = parseAmount(content.getString("amount"));
+
+        return MoneyTransfer.moneyTransfert(transactionIdOr, accountSrcId, accountDstId, amountOr);
+    }
+
+    private Status<Failure, BigDecimal> parseAmount(String amount) {
+        if (amount == null || amount.trim().isEmpty())
+            return Status.failure("no-amount-provided");
+
+        try {
+            return Status.ok(new BigDecimal(amount));
+        } catch (Exception e) {
+            return Status.failure("invalid-amount-format");
+        }
     }
 
     private JsonObject toDto(Account account) {

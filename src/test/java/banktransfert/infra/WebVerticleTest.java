@@ -1,13 +1,15 @@
 package banktransfert.infra;
 
 
-import banktransfert.core.account.AccountId;
 import banktransfert.core.Email;
 import banktransfert.core.Status;
 import banktransfert.core.account.Account;
+import banktransfert.core.account.AccountId;
 import banktransfert.core.account.Accounts;
-import banktransfert.core.account.inmemory.InMemoryAccount;
+import banktransfert.core.account.MoneyTransferService;
 import banktransfert.core.account.NewAccount;
+import banktransfert.core.account.TransactionId;
+import banktransfert.core.account.inmemory.InMemoryAccount;
 import banktransfert.infra.web.WebVerticle;
 import io.vertx.core.DeploymentOptions;
 import io.vertx.core.Vertx;
@@ -28,10 +30,12 @@ import org.mockito.Mockito;
 import java.math.BigDecimal;
 import java.security.SecureRandom;
 import java.util.Optional;
+import java.util.UUID;
 
 import static banktransfert.core.account.AccountId.accountId;
 import static java.util.Collections.emptyList;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyZeroInteractions;
 import static org.mockito.Mockito.when;
@@ -40,19 +44,22 @@ import static org.mockito.Mockito.when;
 public class WebVerticleTest {
 
     private static final Email EMAIL = Email.email("puck@tyrna.nog").value();
+    private static final TransactionId TRANSACTION_ID = TransactionId.transactionId("t800").value();
 
     private Vertx vertx;
     private int port;
     private Accounts accounts;
+    private MoneyTransferService moneyTransferService;
 
     @Before
     public void setUp(TestContext context) {
         accounts = Mockito.mock(Accounts.class);
+        moneyTransferService = Mockito.mock(MoneyTransferService.class);
         //
         port = 50000 + new SecureRandom().nextInt(5000);
         vertx = Vertx.vertx();
         vertx.deployVerticle(
-                new WebVerticle(accounts),
+                new WebVerticle(accounts, moneyTransferService),
                 new DeploymentOptions()
                         .setInstances(1)
                         .setConfig(new JsonObject().put(WebVerticle.HTTP_PORT, port)),
@@ -196,6 +203,30 @@ public class WebVerticleTest {
                     JsonObject body = response.bodyAsJsonObject();
                     assertThat(body.getString("error")).isEqualTo("no-email-provided");
                     verifyZeroInteractions(accounts);
+                    async.complete();
+                });
+    }
+
+    @Test
+    public void transfert_money_between_existings_account(TestContext context) {
+        final Async async = context.async();
+
+        when(moneyTransferService.transfer(any())).thenReturn(Status.ok(TRANSACTION_ID));
+
+        WebClient client = WebClient.create(vertx);
+        client.post(port, "localhost", "/transfer")
+                .sendJsonObject(new JsonObject()
+                        .put("transaction-id", UUID.randomUUID().toString())
+                        .put("source-id", "a001")
+                        .put("destination-id", "a002")
+                        .put("amount", "200"), ar -> {
+
+                    context.assertTrue(ar.succeeded());
+                    HttpResponse<Buffer> response = ar.result();
+                    context.assertEquals(201, response.statusCode());
+
+                    JsonObject body = response.bodyAsJsonObject();
+                    assertThat(body.getString("transaction-id")).isNotBlank().isEqualTo("t800");
                     async.complete();
                 });
     }

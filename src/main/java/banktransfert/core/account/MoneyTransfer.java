@@ -1,8 +1,33 @@
 package banktransfert.core.account;
 
+import banktransfert.core.Failure;
+import banktransfert.core.Status;
+
 import java.math.BigDecimal;
 
 public class MoneyTransfer {
+
+    public static Status<Failure, MoneyTransfer> moneyTransfert(Status<Failure, TransactionId> transactionIdOr,
+                                                                Status<Failure, AccountId> accountSrcIdOr,
+                                                                Status<Failure, AccountId> accountDstIdOr,
+                                                                Status<Failure, BigDecimal> amountOr) {
+        if (!transactionIdOr.succeeded())
+            return Status.error(transactionIdOr.error());
+        if (!accountSrcIdOr.succeeded())
+            return Status.error(accountSrcIdOr.error());
+        if (!accountDstIdOr.succeeded())
+            return Status.error(accountDstIdOr.error());
+        if (!amountOr.succeeded())
+            return Status.error(amountOr.error());
+
+        return Status.ok(new MoneyTransfer(transactionIdOr.value(),
+                accountSrcIdOr.value(),
+                accountDstIdOr.value(),
+                amountOr.value()
+        ));
+    }
+
+
     private final TransactionId transactionId;
     private final AccountId source;
     private final AccountId destination;

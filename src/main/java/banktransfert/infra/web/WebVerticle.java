@@ -1,6 +1,8 @@
 package banktransfert.infra.web;
 
 import banktransfert.core.account.Accounts;
+import banktransfert.core.account.DefaultMoneyTransferService;
+import banktransfert.core.account.MoneyTransferService;
 import banktransfert.core.account.UUIDAccountIdGenerator;
 import banktransfert.core.account.inmemory.InMemoryAccounts;
 import io.vertx.core.AbstractVerticle;
@@ -19,23 +21,27 @@ public class WebVerticle extends AbstractVerticle {
     private static final Logger LOGGER = LoggerFactory.getLogger(WebVerticle.class);
     //
     private final Accounts accounts;
+    private final MoneyTransferService moneyTransferService;
 
     // default ctor is used by vertx
     public WebVerticle() {
         // whereas this is an ugly approach, this overcomes the usage of multiple WebVerticle
         // by ensuring all of them use the same underlying Repository, even concurrently...
         // next step would be to use a dedicated Verticle for the Repository
-        this(singletonInMemoryAccounts());
+        this(singletonInMemoryAccounts(), new DefaultMoneyTransferService(singletonInMemoryAccounts()));
     }
 
-    private static final Accounts SINGLETON = new InMemoryAccounts(new UUIDAccountIdGenerator());
+    private static Accounts SINGLETON;
 
     private static synchronized Accounts singletonInMemoryAccounts() {
+        if (SINGLETON == null)
+            SINGLETON = new InMemoryAccounts(new UUIDAccountIdGenerator());
         return SINGLETON;
     }
 
-    public WebVerticle(Accounts accounts) {
+    public WebVerticle(Accounts accounts, MoneyTransferService moneyTransferService) {
         this.accounts = accounts;
+        this.moneyTransferService = moneyTransferService;
     }
 
     @Override
@@ -46,7 +52,7 @@ public class WebVerticle extends AbstractVerticle {
 
         Router router = initRouter();
         new PingRoutes(vertx).init(router);
-        new AccountRoutes(vertx, accounts).init(router);
+        new AccountRoutes(vertx, accounts, moneyTransferService).init(router);
         vertx.createHttpServer()
                 .requestHandler(router)
                 .listen(port, result -> {
