@@ -10,4 +10,9 @@ public class Failure {
     public String error() {
         return error;
     }
+
+    @Override
+    public String toString() {
+        return "Failure{" + error + '}';
+    }
 }

@@ -1,5 +1,7 @@
 package banktransfert.core.account;
 
+import banktransfert.core.Failure;
+import banktransfert.core.Status;
 import banktransfert.core.account.inmemory.InMemoryAccounts;
 import org.junit.Before;
 import org.junit.Test;
@@ -18,12 +20,14 @@ public class DefaultMoneyTransferServiceTest {
     private static final BigDecimal M_750 = BigDecimal.valueOf(750);
     private static final BigDecimal M_500 = BigDecimal.valueOf(500);
     private static final BigDecimal M_250 = BigDecimal.valueOf(250);
+    private static final BigDecimal M_050 = BigDecimal.valueOf(50);
 
     private MoneyTransferService moneyTransferService;
     //
     private Accounts accounts;
     private AccountId accountId1;
     private AccountId accountId2;
+    private AccountId accountId3;
 
     @Before
     public void setUp() {
@@ -32,6 +36,7 @@ public class DefaultMoneyTransferServiceTest {
 
         accountId1 = newAccount("titania@tyna.nog", M_500);
         accountId2 = newAccount("oberon@tyna.nog", M_500);
+        accountId3 = newAccount("puck@tyna.nog", M_500);
     }
 
     private AccountId newAccount(String email, BigDecimal initialAmount) {
@@ -69,6 +74,33 @@ public class DefaultMoneyTransferServiceTest {
         assertThat(account2.balance()).describedAs("Balance is unchanged").isEqualTo(M_750);
         assertThat(account1.transactions()).hasSize(1);
         assertThat(account2.transactions()).hasSize(1);
+    }
+
+
+    @Test
+    public void should_ignore_second_attempt_to_transfer_money_with_same_transaction_id() {
+        MoneyTransfer moneyTransfer1 = new MoneyTransfer(TRANSACTION_ID, accountId1, accountId2, M_250);
+        MoneyTransfer moneyTransfer2 = new MoneyTransfer(TRANSACTION_ID, accountId1, accountId2, M_050);
+        MoneyTransfer moneyTransfer3 = new MoneyTransfer(TRANSACTION_ID, accountId1, accountId3, M_250);
+
+        Status<Failure, TransactionId> transfer1a = moneyTransferService.transfer(moneyTransfer1);
+        assertThat(transfer1a.succeeded()).isTrue();
+        assertThat(transfer1a.value()).isEqualTo(TRANSACTION_ID);
+
+        // even the exact same
+        Status<Failure, TransactionId> transfer1b = moneyTransferService.transfer(moneyTransfer1);
+        assertThat(transfer1b.succeeded()).isFalse();
+        assertThat(transfer1b.error().error()).isEqualTo("transaction-already-applied");
+
+        // even with different amount
+        Status<Failure, TransactionId> transfer2 = moneyTransferService.transfer(moneyTransfer2);
+        assertThat(transfer2.succeeded()).isFalse();
+        assertThat(transfer2.error().error()).isEqualTo("transaction-already-applied");
+
+        // even with different account
+        Status<Failure, TransactionId> transfer3 = moneyTransferService.transfer(moneyTransfer3);
+        assertThat(transfer3.succeeded()).isFalse();
+        assertThat(transfer3.error().error()).isEqualTo("transaction-already-applied");
     }
 
 
