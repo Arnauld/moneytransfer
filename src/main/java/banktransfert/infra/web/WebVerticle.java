@@ -1,8 +1,8 @@
 package banktransfert.infra.web;
 
 import banktransfert.core.account.Accounts;
-import banktransfert.core.account.InMemoryAccounts;
 import banktransfert.core.account.UUIDAccountIdGenerator;
+import banktransfert.core.account.inmemory.InMemoryAccounts;
 import io.vertx.core.AbstractVerticle;
 import io.vertx.core.Promise;
 import io.vertx.core.json.JsonObject;

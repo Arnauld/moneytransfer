@@ -1,11 +1,12 @@
 package banktransfert.infra;
 
 
+import banktransfert.core.account.AccountId;
 import banktransfert.core.Email;
 import banktransfert.core.Status;
 import banktransfert.core.account.Account;
-import banktransfert.core.account.AccountId;
 import banktransfert.core.account.Accounts;
+import banktransfert.core.account.inmemory.InMemoryAccount;
 import banktransfert.core.account.NewAccount;
 import banktransfert.infra.web.WebVerticle;
 import io.vertx.core.DeploymentOptions;
@@ -24,10 +25,12 @@ import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mockito;
 
+import java.math.BigDecimal;
 import java.security.SecureRandom;
 import java.util.Optional;
 
 import static banktransfert.core.account.AccountId.accountId;
+import static java.util.Collections.emptyList;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyZeroInteractions;
@@ -79,7 +82,8 @@ public class WebVerticleTest {
     public void consult_an_existing_account(TestContext context) {
         final Async async = context.async();
 
-        when(accounts.findById(Mockito.any())).thenReturn(Optional.of(new Account(accountId("w17").value(), EMAIL, "Puck")));
+        Account account = new InMemoryAccount(accountId("w17").value(), BigDecimal.ZERO, emptyList());
+        when(accounts.findById(Mockito.any())).thenReturn(Optional.of(account));
 
         WebClient client = WebClient.create(vertx);
         client.get(port, "localhost", "/account/w17")
