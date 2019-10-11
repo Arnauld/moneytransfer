@@ -3,9 +3,6 @@ package banktransfert.core.account;
 import banktransfert.core.Failure;
 import banktransfert.core.Status;
 
-/**
- * @author <a href="http://twitter.com/aloyer">@aloyer</a>
- */
 public class AccountId {
 
     public static Status<Failure, AccountId> accountId(String asString) {
