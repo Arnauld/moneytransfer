@@ -4,27 +4,34 @@ import banktransfert.core.Email;
 import banktransfert.core.Failure;
 import banktransfert.core.Status;
 
+import java.math.BigDecimal;
+
 public class NewAccount {
 
-    public static Status<Failure, NewAccount> newAccount(Status<Failure, Email> email, String fullName) {
+    public static Status<Failure, NewAccount> newAccount(Status<Failure, Email> email) {
+        return newAccount(email, BigDecimal.ZERO);
+    }
+
+    public static Status<Failure, NewAccount> newAccount(Status<Failure, Email> email,
+                                                         BigDecimal initialAmount) {
         if (email.succeeded())
-            return Status.ok(new NewAccount(email.value(), fullName));
+            return Status.ok(new NewAccount(email.value(), initialAmount));
         return Status.error(email.error());
     }
 
     private final Email email;
-    private final String fullName;
+    private final BigDecimal initialAmount;
 
-    private NewAccount(Email email, String fullName) {
+    private NewAccount(Email email, BigDecimal initialAmount) {
         this.email = email;
-        this.fullName = fullName;
+        this.initialAmount = initialAmount;
     }
 
     public Email email() {
         return email;
     }
 
-    public String fullName() {
-        return fullName;
+    public BigDecimal initialAmount() {
+        return initialAmount;
     }
 }

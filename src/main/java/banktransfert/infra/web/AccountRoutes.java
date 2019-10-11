@@ -1,10 +1,10 @@
 package banktransfert.infra.web;
 
+import banktransfert.core.account.AccountId;
 import banktransfert.core.Email;
 import banktransfert.core.Failure;
 import banktransfert.core.Status;
 import banktransfert.core.account.Account;
-import banktransfert.core.account.AccountId;
 import banktransfert.core.account.Accounts;
 import banktransfert.core.account.NewAccount;
 import io.vertx.core.Vertx;
@@ -12,6 +12,7 @@ import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.Router;
 import io.vertx.ext.web.RoutingContext;
 
+import java.math.BigDecimal;
 import java.util.Optional;
 
 import static banktransfert.infra.web.VertxResponse.writeJson;
@@ -106,7 +107,7 @@ public class AccountRoutes {
 
         Status<Failure, Email> emailOr = Email.email(content.getString("email"));
         String fullName = content.getString("fullName");
-        return NewAccount.newAccount(emailOr, fullName);
+        return NewAccount.newAccount(emailOr, BigDecimal.ZERO);
     }
 
     private JsonObject toDto(Account account) {
