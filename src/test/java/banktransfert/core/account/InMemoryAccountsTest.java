@@ -3,6 +3,7 @@ package banktransfert.core.account;
 import banktransfert.core.Email;
 import banktransfert.core.Failure;
 import banktransfert.core.Status;
+import banktransfert.core.account.inmemory.InMemoryAccounts;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mockito;
@@ -28,7 +29,7 @@ public class InMemoryAccountsTest {
     public void should_create_new_account() {
         when(accountIdGenerator.newAccountId()).thenReturn(ACCOUNT_ID1);
 
-        NewAccount newAccount = NewAccount.newAccount(Email.email("titania@tyrna.nog"), "Titania").value();
+        NewAccount newAccount = NewAccount.newAccount(Email.email("titania@tyrna.nog")).value();
         Status<Failure, AccountId> accountIdStatus = accounts.add(newAccount);
         assertThat(accountIdStatus.succeeded()).isTrue();
         assertThat(accountIdStatus.value().asString()).isNotBlank();
@@ -38,8 +39,8 @@ public class InMemoryAccountsTest {
     public void should_generate_different_id_when_creating_multiple_accounts() {
         when(accountIdGenerator.newAccountId()).thenReturn(ACCOUNT_ID1, ACCOUNT_ID2);
 
-        NewAccount newAccount1 = NewAccount.newAccount(Email.email("titania@tyrna.nog"), "Titania").value();
-        NewAccount newAccount2 = NewAccount.newAccount(Email.email("oberon@tyrna.nog"), "Oberon").value();
+        NewAccount newAccount1 = NewAccount.newAccount(Email.email("titania@tyrna.nog")).value();
+        NewAccount newAccount2 = NewAccount.newAccount(Email.email("oberon@tyrna.nog")).value();
         Status<Failure, AccountId> accountIdStatus1 = accounts.add(newAccount1);
         Status<Failure, AccountId> accountIdStatus2 = accounts.add(newAccount2);
         assertThat(accountIdStatus1.value()).isNotEqualTo(accountIdStatus2.value());
@@ -51,7 +52,7 @@ public class InMemoryAccountsTest {
     public void should_not_allow_to_create_two_accounts_with_same_email() {
         when(accountIdGenerator.newAccountId()).thenReturn(ACCOUNT_ID1, ACCOUNT_ID2);
 
-        NewAccount newAccount = NewAccount.newAccount(Email.email("titania@tyrna.nog"), "Titania").value();
+        NewAccount newAccount = NewAccount.newAccount(Email.email("titania@tyrna.nog")).value();
         Status<Failure, AccountId> accountIdStatus1 = accounts.add(newAccount);
         Status<Failure, AccountId> accountIdStatus2 = accounts.add(newAccount);
         assertThat(accountIdStatus1.succeeded()).isTrue();
