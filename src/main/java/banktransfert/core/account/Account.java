@@ -1,18 +1,15 @@
 package banktransfert.core.account;
 
-import banktransfert.core.Email;
+import banktransfert.core.Failure;
+import banktransfert.core.Status;
 
-/**
- * @author <a href="http://twitter.com/aloyer">@aloyer</a>
- */
-public class Account {
-    private final AccountId accountId;
+import java.math.BigDecimal;
+import java.util.stream.Stream;
 
-    public Account(AccountId accountId, Email email, String fullName) {
-        this.accountId = accountId;
-    }
+public interface Account {
+    AccountId accountId();
 
-    public AccountId accountId() {
-        return accountId;
-    }
+    BigDecimal balance();
+
+
 }
