@@ -19,6 +19,8 @@ public class Main {
     public static final String HTTP_INSTANCES = "http.instances";
 
     public static void main(String[] args) {
+        System.setProperty("org.vertx.logger-delegate-factory-class-name",
+                "org.vertx.java.core.logging.impl.SLF4JLogDelegateFactory");
         VertxOptions vertxOptions = new VertxOptions();
         Vertx vertx = Vertx.vertx(vertxOptions);
         vertx.deployVerticle(WebVerticle.class, webDeploymentOptions());
