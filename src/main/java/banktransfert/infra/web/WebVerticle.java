@@ -8,11 +8,15 @@ import io.vertx.core.Promise;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.Router;
 import io.vertx.ext.web.handler.BodyHandler;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class WebVerticle extends AbstractVerticle {
     public static final String HTTP_PORT = "http.port";
     private static final long MAX_BODY_SIZE_IN_BYTES = 4048;
     private static final String APPLICATION_JSON = "application/json";
+    //
+    private static final Logger LOGGER = LoggerFactory.getLogger(WebVerticle.class);
     //
     private final Accounts accounts;
 
@@ -47,6 +51,7 @@ public class WebVerticle extends AbstractVerticle {
                 .requestHandler(router)
                 .listen(port, result -> {
                     if (result.succeeded()) {
+                        LOGGER.info("WebVerticle stated on localhost:{}", port);
                         startPromise.complete();
                     } else {
                         startPromise.fail(result.cause());
