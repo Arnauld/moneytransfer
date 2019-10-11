@@ -11,5 +11,12 @@ public interface Account {
 
     BigDecimal balance();
 
+    Status<Failure, TransactionId> withdraw(MoneyTransfer moneyTransfer);
+
+    void credit(MoneyTransfer moneyTransfer);
+
+    void applyTransactions(MoneyTransferService moneyTransferService);
+
+    Stream<Transaction> transactions();
 
 }
