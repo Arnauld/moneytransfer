@@ -11,9 +11,6 @@ import java.math.BigDecimal;
 import static banktransfert.core.Email.email;
 import static org.assertj.core.api.Assertions.assertThat;
 
-/**
- * @author <a href="http://twitter.com/aloyer">@aloyer</a>
- */
 public class DefaultMoneyTransferServiceTest {
 
     private static final TransactionId TRANSACTION_ID = TransactionId.transactionId("w001").value();
