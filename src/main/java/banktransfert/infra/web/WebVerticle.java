@@ -64,6 +64,9 @@ public class WebVerticle extends AbstractVerticle {
         router.route().consumes(APPLICATION_JSON);
         router.route().produces(APPLICATION_JSON);
         router.route().handler(BodyHandler.create().setBodyLimit(MAX_BODY_SIZE_IN_BYTES));
+        router.errorHandler(500, rc -> {
+            LOGGER.error("Oops", rc.failure());
+        });
         return router;
     }
 
