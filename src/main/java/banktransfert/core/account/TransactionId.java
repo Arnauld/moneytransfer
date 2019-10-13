@@ -6,9 +6,9 @@ import banktransfert.core.Status;
 public class TransactionId {
     public static Status<Failure, TransactionId> transactionId(String asString) {
         if (asString == null || asString.trim().isEmpty())
-            return Status.failure("no-id-provided");
+            return Status.failure("no-transaction-id-provided");
         if (asString.length() > 36)
-            return Status.failure("invalid-length");
+            return Status.failure("invalid-transaction-id-length");
         return Status.ok(new TransactionId(asString));
     }
 

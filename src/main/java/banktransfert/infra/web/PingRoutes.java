@@ -4,7 +4,7 @@ import io.vertx.core.Vertx;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.Router;
 
-import static banktransfert.infra.web.VertxResponse.writeJson;
+import static banktransfert.infra.web.VertxTools.writeJson;
 import static java.net.HttpURLConnection.HTTP_OK;
 
 public class PingRoutes {

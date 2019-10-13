@@ -6,10 +6,10 @@ import banktransfert.core.Status;
 public class AccountId {
 
     public static Status<Failure, AccountId> accountId(String asString) {
-        if (asString == null)
-            return Status.failure("Invalid accountId: cannot be null");
+        if (asString == null || asString.trim().isEmpty())
+            return Status.failure("no-account-id-provided");
         if (asString.length() > 36)
-            return Status.failure("Invalid accountId: max length exceeded");
+            return Status.failure("invalid-account-id-length");
         return Status.ok(new AccountId(asString));
     }
 

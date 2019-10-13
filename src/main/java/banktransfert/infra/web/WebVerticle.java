@@ -53,7 +53,7 @@ public class WebVerticle extends AbstractVerticle {
 
         Router router = initRouter();
         new PingRoutes(vertx).init(router);
-        new AccountRoutes(vertx, accounts, moneyTransferService).init(router);
+        new AccountRoutes(vertx, new Converters(), accounts, moneyTransferService).init(router);
         vertx.createHttpServer()
                 .requestHandler(router)
                 .listen(port, result -> {

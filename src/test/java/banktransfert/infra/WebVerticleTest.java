@@ -148,7 +148,7 @@ public class WebVerticleTest {
     }
 
     @Test
-    public void create_an_account(TestContext context) {
+    public void create_an_account_with_default_initial_amount(TestContext context) {
         final Async async = context.async();
 
         when(accounts.add(Mockito.any())).thenReturn(Status.ok(AccountId.accountId("x17").value()));
@@ -167,6 +167,33 @@ public class WebVerticleTest {
                     ArgumentCaptor<NewAccount> newAccountCaptor = ArgumentCaptor.forClass(NewAccount.class);
                     verify(accounts).add(newAccountCaptor.capture());
                     assertThat(newAccountCaptor.getValue().email()).isEqualTo(Email.email("hog@tyrna.nog").value());
+                    assertThat(newAccountCaptor.getValue().initialAmount()).isEqualTo(BigDecimal.ZERO);
+                    async.complete();
+                });
+    }
+
+    @Test
+    public void create_an_account_with_provided_initial_amount(TestContext context) {
+        final Async async = context.async();
+
+        when(accounts.add(Mockito.any())).thenReturn(Status.ok(AccountId.accountId("x17").value()));
+
+        WebClient client = WebClient.create(vertx);
+        client.post(port, "localhost", "/account")
+                .sendJsonObject(new JsonObject()
+                        .put("email", "hog@tyrna.nog")
+                        .put("initial-amount", "500.5"), ar -> {
+                    context.assertTrue(ar.succeeded());
+                    HttpResponse<Buffer> response = ar.result();
+                    context.assertEquals(201, response.statusCode());
+
+                    JsonObject body = response.bodyAsJsonObject();
+                    assertThat(body.getString("account-id")).isEqualTo("x17");
+
+                    ArgumentCaptor<NewAccount> newAccountCaptor = ArgumentCaptor.forClass(NewAccount.class);
+                    verify(accounts).add(newAccountCaptor.capture());
+                    assertThat(newAccountCaptor.getValue().email()).isEqualTo(Email.email("hog@tyrna.nog").value());
+                    assertThat(newAccountCaptor.getValue().initialAmount()).isEqualTo(new BigDecimal("500.5"));
                     async.complete();
                 });
     }
@@ -184,6 +211,26 @@ public class WebVerticleTest {
 
                     JsonObject body = response.bodyAsJsonObject();
                     assertThat(body.getString("error")).isEqualTo("invalid-json-format");
+                    verifyZeroInteractions(accounts);
+                    async.complete();
+                });
+    }
+
+    @Test
+    public void create_an_account_with_an_invalid_initial_amount_format(TestContext context) {
+        final Async async = context.async();
+
+        WebClient client = WebClient.create(vertx);
+        client.post(port, "localhost", "/account")
+                .sendJsonObject(new JsonObject()
+                        .put("email", "hog@tyrna.nog")
+                        .put("initial-amount", "500.5€"), ar -> {
+                    context.assertTrue(ar.succeeded());
+                    HttpResponse<Buffer> response = ar.result();
+                    context.assertEquals(400, response.statusCode());
+
+                    JsonObject body = response.bodyAsJsonObject();
+                    assertThat(body.getString("error")).isEqualTo("invalid-amount-format");
                     verifyZeroInteractions(accounts);
                     async.complete();
                 });

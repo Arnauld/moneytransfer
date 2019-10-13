@@ -9,11 +9,11 @@ public class TransactionIdTest {
     @Test
     public void should_reject_null_or_empty_argument() {
         assertThat(TransactionId.transactionId(null).succeeded()).isFalse();
-        assertThat(TransactionId.transactionId(null).error().error()).isEqualTo("no-id-provided");
+        assertThat(TransactionId.transactionId(null).error().error()).isEqualTo("no-transaction-id-provided");
         assertThat(TransactionId.transactionId("").succeeded()).isFalse();
-        assertThat(TransactionId.transactionId("").error().error()).isEqualTo("no-id-provided");
+        assertThat(TransactionId.transactionId("").error().error()).isEqualTo("no-transaction-id-provided");
         assertThat(TransactionId.transactionId("  ").succeeded()).isFalse();
-        assertThat(TransactionId.transactionId("  ").error().error()).isEqualTo("no-id-provided");
+        assertThat(TransactionId.transactionId("  ").error().error()).isEqualTo("no-transaction-id-provided");
     }
 
     @Test
