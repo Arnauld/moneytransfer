@@ -147,8 +147,12 @@ public class AccountRoutes {
         }
 
         Status<Failure, Email> emailOr = Email.email(content.getString("email"));
-        String fullName = content.getString("fullName");
-        return NewAccount.newAccount(emailOr, BigDecimal.ZERO);
+
+        String amountStr = content.getString("initial-amount");
+        if(amountStr==null)
+            return NewAccount.newAccount(emailOr);
+
+        return NewAccount.newAccount(emailOr, parseAmount(amountStr));
     }
 
     private Status<Failure, MoneyTransfer> toMoneyTransfer(RoutingContext rc) {

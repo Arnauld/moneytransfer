@@ -20,6 +20,15 @@ public class WebVerticle extends AbstractVerticle {
     //
     private static final Logger LOGGER = LoggerFactory.getLogger(WebVerticle.class);
     //
+    private static Accounts SINGLETON;
+
+    private static synchronized Accounts singletonInMemoryAccounts() {
+        if (SINGLETON == null)
+            SINGLETON = new InMemoryAccounts(new UUIDAccountIdGenerator());
+        return SINGLETON;
+    }
+
+    //
     private final Accounts accounts;
     private final MoneyTransferService moneyTransferService;
 
@@ -29,14 +38,6 @@ public class WebVerticle extends AbstractVerticle {
         // by ensuring all of them use the same underlying Repository, even concurrently...
         // next step would be to use a dedicated Verticle for the Repository
         this(singletonInMemoryAccounts(), new DefaultMoneyTransferService(singletonInMemoryAccounts()));
-    }
-
-    private static Accounts SINGLETON;
-
-    private static synchronized Accounts singletonInMemoryAccounts() {
-        if (SINGLETON == null)
-            SINGLETON = new InMemoryAccounts(new UUIDAccountIdGenerator());
-        return SINGLETON;
     }
 
     public WebVerticle(Accounts accounts, MoneyTransferService moneyTransferService) {

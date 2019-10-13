@@ -5,7 +5,7 @@ import banktransfert.core.Status;
 
 import java.util.Optional;
 
-public class DefaultMoneyTransferService implements MoneyTransferService {
+public class DefaultMoneyTransferService implements MoneyTransferService, MoneyTransferSteps {
     private final Accounts accounts;
 
     public DefaultMoneyTransferService(Accounts accounts) {
@@ -16,7 +16,7 @@ public class DefaultMoneyTransferService implements MoneyTransferService {
     public Status<Failure, TransactionId> transfer(MoneyTransfer moneyTransfer) {
         AccountId srcId = moneyTransfer.source();
         AccountId dstId = moneyTransfer.destination();
-        if(srcId.equals(dstId))
+        if (srcId.equals(dstId))
             return Status.failure("identical-src-dst");
 
         Optional<Account> srcOpt = accounts.findById(srcId);
@@ -28,7 +28,7 @@ public class DefaultMoneyTransferService implements MoneyTransferService {
             return Status.failure("unknown-dst-account");
 
         Account account = srcOpt.get();
-        return account.withdraw(moneyTransfer);
+        return account.withdraws(moneyTransfer);
     }
 
     @Override
@@ -36,7 +36,15 @@ public class DefaultMoneyTransferService implements MoneyTransferService {
         Optional<Account> destinationOpt = accounts.findById(moneyTransfer.destination());
 
         Account account = destinationOpt.get();
-        account.credit(moneyTransfer);
+        account.credits(moneyTransfer);
+    }
+
+    @Override
+    public void acknowledge(MoneyTransfer moneyTransfer) {
+        Optional<Account> sourceOpt = accounts.findById(moneyTransfer.source());
+
+        Account account = sourceOpt.get();
+        account.acknowledges(moneyTransfer);
     }
 
     /**
@@ -44,10 +52,10 @@ public class DefaultMoneyTransferService implements MoneyTransferService {
      * to perform credit/debit operation through transaction.
      */
     public synchronized void propagateTransactions() {
-        accounts.forEach(this::propagateTransactiontransactions);
+        accounts.forEach(this::propagateTransactions);
     }
 
-    private void propagateTransactiontransactions(Account account) {
+    private void propagateTransactions(Account account) {
         account.applyTransactions(this);
     }
 }

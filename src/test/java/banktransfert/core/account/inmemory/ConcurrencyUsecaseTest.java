@@ -1,17 +1,12 @@
 package banktransfert.core.account.inmemory;
 
-import banktransfert.core.account.AccountId;
-import banktransfert.core.account.Accounts;
-import banktransfert.core.account.DefaultMoneyTransferService;
-import banktransfert.core.account.MoneyTransfer;
-import banktransfert.core.account.NewAccount;
-import banktransfert.core.account.SequenceAccountIdGenerator;
-import banktransfert.core.account.TransactionId;
+import banktransfert.core.account.*;
 import org.junit.Before;
 import org.junit.Test;
 
 import java.math.BigDecimal;
 import java.security.SecureRandom;
+import java.util.EnumSet;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -23,6 +18,7 @@ import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 import static banktransfert.core.Email.email;
+import static banktransfert.core.Status.ok;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class ConcurrencyUsecaseTest {
@@ -66,8 +62,10 @@ public class ConcurrencyUsecaseTest {
         executorService.awaitTermination(10, TimeUnit.SECONDS);
         scheduledFuture.cancel(true);
 
-        // make sure all transaction have been processes
-        moneyTransferService.propagateTransactions();
+        // make sure all transaction have been processed
+        moneyTransferService.propagateTransactions(); // may generate credit
+        moneyTransferService.propagateTransactions(); // may generate ack
+        // make sure all transaction have been acknowledged
         moneyTransferService.propagateTransactions();
 
         //
@@ -79,11 +77,21 @@ public class ConcurrencyUsecaseTest {
         //
         BigDecimal totalAfter = totalBalance(accounts);
         assertThat(totalAfter).describedAs("No money should have been created...").isEqualTo(totalBefore);
+
+        accounts.forEach(a -> assertTransactions(a));
     }
 
+    private void assertTransactions(Account a) {
+        EnumSet<TransactionStatus> ACCEPTED_STATUSES =
+                EnumSet.of(TransactionStatus.Cancelled,
+                        TransactionStatus.Credited,
+                        TransactionStatus.Acknowledged);
+        assertThat(a.transactions()
+                .filter(t -> !ACCEPTED_STATUSES.contains(t.status()))).hasSize(0);
+    }
 
     private AccountId newAccount(String email, BigDecimal initialAmount) {
-        return accounts.add(NewAccount.newAccount(email(email), initialAmount).value()).value();
+        return accounts.add(NewAccount.newAccount(email(email), ok(initialAmount)).value()).value();
     }
 
     private List<AccountId> fillWithRandomAccounts(SecureRandom random, int nbAccount) {

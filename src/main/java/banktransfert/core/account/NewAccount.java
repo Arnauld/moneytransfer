@@ -9,14 +9,16 @@ import java.math.BigDecimal;
 public class NewAccount {
 
     public static Status<Failure, NewAccount> newAccount(Status<Failure, Email> email) {
-        return newAccount(email, BigDecimal.ZERO);
+        return newAccount(email, Status.ok(BigDecimal.ZERO));
     }
 
     public static Status<Failure, NewAccount> newAccount(Status<Failure, Email> email,
-                                                         BigDecimal initialAmount) {
-        if (email.succeeded())
-            return Status.ok(new NewAccount(email.value(), initialAmount));
-        return Status.error(email.error());
+                                                         Status<Failure, BigDecimal> initialAmount) {
+        if (!email.succeeded())
+            return Status.error(email.error());
+        if (!initialAmount.succeeded())
+            return Status.error(initialAmount.error());
+        return Status.ok(new NewAccount(email.value(), initialAmount.value()));
     }
 
     private final Email email;

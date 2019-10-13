@@ -56,12 +56,20 @@ public class InMemoryTransaction implements Transaction {
         }
     }
 
-    void credited() {
-        status.compareAndSet(TransactionStatus.Pending, TransactionStatus.Credited);
+    boolean credited() {
+        return status.compareAndSet(TransactionStatus.Pending, TransactionStatus.Credited);
     }
 
-    void debited() {
-        status.compareAndSet(TransactionStatus.Pending, TransactionStatus.Debited);
+    boolean debited() {
+        return status.compareAndSet(TransactionStatus.Pending, TransactionStatus.Debited);
+    }
+
+    boolean acknowledged() {
+        return status.updateAndGet(s -> {
+            if (s == TransactionStatus.Credited || s == TransactionStatus.Debited)
+                return TransactionStatus.Acknowledged;
+            return s;
+        }) == TransactionStatus.Acknowledged;
     }
 
     @Override

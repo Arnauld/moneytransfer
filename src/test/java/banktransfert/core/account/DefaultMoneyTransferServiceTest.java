@@ -9,6 +9,7 @@ import org.junit.Test;
 import java.math.BigDecimal;
 
 import static banktransfert.core.Email.email;
+import static banktransfert.core.Status.ok;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class DefaultMoneyTransferServiceTest {
@@ -37,7 +38,7 @@ public class DefaultMoneyTransferServiceTest {
     }
 
     private AccountId newAccount(String email, BigDecimal initialAmount) {
-        return accounts.add(NewAccount.newAccount(email(email), initialAmount).value()).value();
+        return accounts.add(NewAccount.newAccount(email(email), ok(initialAmount)).value()).value();
     }
 
     @Test

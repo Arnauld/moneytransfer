@@ -1,10 +1,10 @@
 package banktransfert.core.account.inmemory;
 
-import banktransfert.core.account.AccountId;
 import banktransfert.core.Email;
 import banktransfert.core.Failure;
 import banktransfert.core.Status;
 import banktransfert.core.account.Account;
+import banktransfert.core.account.AccountId;
 import banktransfert.core.account.AccountIdGenerator;
 import banktransfert.core.account.Accounts;
 import banktransfert.core.account.NewAccount;

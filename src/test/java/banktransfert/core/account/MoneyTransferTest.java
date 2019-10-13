@@ -18,7 +18,7 @@ public class MoneyTransferTest {
     private static final BigDecimal M_350 = BigDecimal.valueOf(350);
 
     @Test
-    public void should_ensure_consistency_with_equals_and_hashcode () {
+    public void should_ensure_consistency_with_equals_and_hashcode() {
         MoneyTransfer m1a = new MoneyTransfer(TRANSACTION_ID1, ACCOUNT_ID1, ACCOUNT_ID2, M_100);
         MoneyTransfer m1b = new MoneyTransfer(TRANSACTION_ID1, ACCOUNT_ID1, ACCOUNT_ID2, M_100);
         MoneyTransfer m2a = new MoneyTransfer(TRANSACTION_ID2, ACCOUNT_ID1, ACCOUNT_ID2, M_100);

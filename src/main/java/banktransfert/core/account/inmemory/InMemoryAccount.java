@@ -1,14 +1,8 @@
 package banktransfert.core.account.inmemory;
 
-import banktransfert.core.account.AccountId;
 import banktransfert.core.Failure;
 import banktransfert.core.Status;
-import banktransfert.core.account.Account;
-import banktransfert.core.account.MoneyTransfer;
-import banktransfert.core.account.MoneyTransferService;
-import banktransfert.core.account.Transaction;
-import banktransfert.core.account.TransactionId;
-import banktransfert.core.account.TransactionStatus;
+import banktransfert.core.account.*;
 
 import java.math.BigDecimal;
 import java.util.Comparator;
@@ -54,8 +48,8 @@ public class InMemoryAccount implements Account {
     }
 
     @Override
-    public Status<Failure, TransactionId> withdraw(MoneyTransfer moneyTransfer) {
-        if(!accountId.equals(moneyTransfer.source())) {
+    public Status<Failure, TransactionId> withdraws(MoneyTransfer moneyTransfer) {
+        if (!accountId.equals(moneyTransfer.source())) {
             return Status.failure("not-source-account");
         }
 
@@ -72,23 +66,35 @@ public class InMemoryAccount implements Account {
     }
 
     @Override
-    public void credit(MoneyTransfer moneyTransfer) {
+    public Status<Failure, TransactionId> credits(MoneyTransfer moneyTransfer) {
         TransactionId transactionId = moneyTransfer.transactionId();
         InMemoryTransaction transaction = new InMemoryTransaction(
                 transactionSequence.incrementAndGet(),
                 moneyTransfer,
                 TransactionStatus.Pending);
-        transactions.putIfAbsent(transactionId, transaction);
+        InMemoryTransaction previous = transactions.putIfAbsent(transactionId, transaction);
+        if (previous != null)
+            return Status.failure("transaction-already-applied");
+        return Status.ok(transactionId);
     }
 
     @Override
-    public synchronized void applyTransactions(MoneyTransferService moneyTransferService) {
+    public Status<Failure, TransactionId> acknowledges(MoneyTransfer moneyTransfer) {
+        TransactionId transactionId = moneyTransfer.transactionId();
+        InMemoryTransaction transaction = transactions.get(transactionId);
+        if (transaction == null)
+            return Status.failure("transaction-unknown");
+        return transaction.acknowledged() ? Status.ok(transactionId) : Status.failure("ack-failed");
+    }
+
+    @Override
+    public synchronized void applyTransactions(MoneyTransferSteps moneyTransferService) {
         transactionStream()
                 .filter(t -> t.status() == TransactionStatus.Pending)
                 .forEach(t -> applyTransaction(t, moneyTransferService));
     }
 
-    private void applyTransaction(InMemoryTransaction transaction, MoneyTransferService moneyTransferService) {
+    private void applyTransaction(InMemoryTransaction transaction, MoneyTransferSteps moneyTransferService) {
         BigDecimal balance = balance();
         BigDecimal amount = transaction.amountFor(accountId());
         BigDecimal newBalance = balance.add(amount);
@@ -98,12 +104,15 @@ public class InMemoryAccount implements Account {
                 return;
             }
 
-            this.balance.set(newBalance);
-            transaction.debited();
-            moneyTransferService.credit(transaction.moneyTransfer());
+            if (transaction.debited()) {
+                this.balance.set(newBalance);
+                moneyTransferService.credit(transaction.moneyTransfer());
+            }
         } else {
-            this.balance.set(newBalance);
-            transaction.credited();
+            if (transaction.credited()) {
+                this.balance.set(newBalance);
+                moneyTransferService.acknowledge(transaction.moneyTransfer());
+            }
         }
     }
 }
