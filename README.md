@@ -7,7 +7,7 @@ repeatability.
 Thus, it leaded to a strong separation of 'Credit' and 'Debit' operations. 
 All operations have been designed to handle multiple submissions.
 
-This allows strong idempotency, repeatability and resilience of the all operations.
+This allows strong idempotency, repeatability and resilience of all operations.
 If an operation fails, it will be reattempted until the feedback loop is complete.
 
 ## Transaction Id and idempotency
