@@ -7,11 +7,14 @@ import banktransfert.core.account.Account;
 import banktransfert.core.account.AccountId;
 import banktransfert.core.account.MoneyTransfer;
 import banktransfert.core.account.NewAccount;
+import banktransfert.core.account.Transaction;
 import banktransfert.core.account.TransactionId;
 import io.vertx.core.json.JsonObject;
 
 import java.math.BigDecimal;
 import java.util.function.Supplier;
+
+import static java.util.stream.Collectors.toList;
 
 class Converters {
 
@@ -93,8 +96,19 @@ class Converters {
         }
     }
 
+    JsonObject toDto(Transaction tx) {
+        return new JsonObject()
+                .put("transaction-id", tx.transactionId().asString())
+                .put("status", tx.status().name())
+                .put("source-id", tx.moneyTransfer().source().asString())
+                .put("destination-id", tx.moneyTransfer().destination().asString())
+                .put("amount", tx.moneyTransfer().amount().toPlainString());
+    }
+
     JsonObject toDto(Account account) {
         return new JsonObject()
-                .put("account-id", account.accountId().asString());
+                .put("account-id", account.accountId().asString())
+                .put("balance", account.balance().toPlainString())
+                .put("transactions", account.transactions().map(this::toDto).collect(toList()));
     }
 }

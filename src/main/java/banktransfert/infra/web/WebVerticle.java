@@ -1,10 +1,7 @@
 package banktransfert.infra.web;
 
 import banktransfert.core.account.Accounts;
-import banktransfert.core.account.DefaultMoneyTransferService;
 import banktransfert.core.account.MoneyTransferService;
-import banktransfert.core.account.UUIDAccountIdGenerator;
-import banktransfert.core.account.inmemory.InMemoryAccounts;
 import io.vertx.core.AbstractVerticle;
 import io.vertx.core.Promise;
 import io.vertx.core.json.JsonObject;
@@ -13,22 +10,16 @@ import io.vertx.ext.web.handler.BodyHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import static banktransfert.infra.Shared.sharedInMemoryAccounts;
+import static banktransfert.infra.Shared.sharedMoneyTransferService;
+
 public class WebVerticle extends AbstractVerticle {
     public static final String HTTP_PORT = "http.port";
     private static final long MAX_BODY_SIZE_IN_BYTES = 4048;
     private static final String APPLICATION_JSON = "application/json";
     //
     private static final Logger LOGGER = LoggerFactory.getLogger(WebVerticle.class);
-    //
-    private static Accounts SINGLETON;
 
-    private static synchronized Accounts singletonInMemoryAccounts() {
-        if (SINGLETON == null)
-            SINGLETON = new InMemoryAccounts(new UUIDAccountIdGenerator());
-        return SINGLETON;
-    }
-
-    //
     private final Accounts accounts;
     private final MoneyTransferService moneyTransferService;
 
@@ -37,7 +28,7 @@ public class WebVerticle extends AbstractVerticle {
         // whereas this is an ugly approach, this overcomes the usage of multiple WebVerticle
         // by ensuring all of them use the same underlying Repository, even concurrently...
         // next step would be to use a dedicated Verticle for the Repository
-        this(singletonInMemoryAccounts(), new DefaultMoneyTransferService(singletonInMemoryAccounts()));
+        this(sharedInMemoryAccounts(), sharedMoneyTransferService());
     }
 
     public WebVerticle(Accounts accounts, MoneyTransferService moneyTransferService) {

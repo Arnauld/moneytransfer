@@ -41,7 +41,7 @@ import static org.mockito.Mockito.verifyZeroInteractions;
 import static org.mockito.Mockito.when;
 
 @RunWith(VertxUnitRunner.class)
-public class WebVerticleTest {
+public class WebVerticleIntegrationTest {
 
     private static final Email EMAIL = Email.email("puck@tyrna.nog").value();
     private static final TransactionId TRANSACTION_ID = TransactionId.transactionId("t800").value();

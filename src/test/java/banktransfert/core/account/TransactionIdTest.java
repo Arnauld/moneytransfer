@@ -28,7 +28,5 @@ public class TransactionIdTest {
         assertThat(TransactionId.transactionId("w0001").value()).isNotEqualTo(TransactionId.transactionId("w0002").value());
         assertThat(TransactionId.transactionId("w0002").value()).isEqualTo(TransactionId.transactionId("w0002").value());
         assertThat(TransactionId.transactionId("w0001").value().hashCode()).isEqualTo(TransactionId.transactionId("w0001").value().hashCode());
-
-
     }
 }

@@ -80,6 +80,7 @@ public class AccountRoutes {
     }
 
     private void createAccount(RoutingContext rc) {
+        LOGGER.info("About to create account...");
         Status<Failure, NewAccount> newAccountOr = converters.toNewAccount(rc::getBodyAsJson);
         if (!newAccountOr.succeeded()) {
             replyInvalidNewAccount(rc, newAccountOr.error());
@@ -109,6 +110,7 @@ public class AccountRoutes {
     }
 
     private void findAccountById(RoutingContext rc, String rawAccountId) {
+        LOGGER.info("About to lookup account...");
         Status<Failure, AccountId> accountIdOr = AccountId.accountId(rawAccountId);
         if (!accountIdOr.succeeded()) {
             replyInvalidAccountId(rc, rawAccountId);
