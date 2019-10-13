@@ -89,7 +89,7 @@ construct.
 
 ## Usage
 
-* [Usecases Tests](src/test/java/banktransfer/infra/UsecasesTest.java)
+* [Usecases Tests](src/test/java/banktransfer/infra/UsecasesIntegrationTest.java)
 * [Concurrency Tests](src/test/java/banktransfer/core/account/inmemory/ConcurrencyUsecaseTest.java)
 
 
