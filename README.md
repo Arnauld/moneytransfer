@@ -67,6 +67,25 @@ preventing i/o error, etc.
 The 'destination' account be will receive the 'credit' transaction as long as
 it send the 'Acknowledge' back to the 'source' account.
 
+# Implementation
+
+## Vertx/Verticles
+
+Application has been built on [vertx](https://vertx.io/) and `Verticle`
+building block.
+The `MainVerticle` sole purpose is to start the `WebVerticle` verticle, 
+which is responsible to handle all http request (one should starts one
+verticle per available processor minus one), and to start the `TransactionPropagationVerticle`
+verticle which is the single threaded part of the transaction processing.
+
+## Status
+
+Due to verticle approach, and to anticipate easier error handling in asynchronus
+processing, choice has been made to not rely on `Exception`. Exceptions
+are catched on boundary layer (`infra`), but `core` only rely on [`Status`](src/main/java/banktransfert/Status.java)
+construct.
+`Status` can be seen as a very simplified implementation of the `Either`
+(or `LeftRight`) monad.
 
 # Usage
 
