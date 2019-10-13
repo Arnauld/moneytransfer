@@ -44,7 +44,7 @@ ensured by transaction id.
 All pending transactions are processed periodically in a serialized way,
 within a single thread for a given account (The actual implementation, use
 a single thread for all account, but could be easy modified): 
-see [DefaultMoneyTransferService#propagateTransactions](src/main/java/banktransfert/core/account/DefaultMoneyTransferService.java#L54).
+see [DefaultMoneyTransferService#propagateTransactions](src/main/java/banktransfer/core/account/DefaultMoneyTransferService.java#L54).
 The source account is debited, transaction is marked `Debited` and the bank
 should transmit the corresponding transaction to the 'destination' account's 
 bank.
@@ -82,15 +82,15 @@ verticle which is the single threaded part of the transaction processing.
 
 Due to verticle approach, and to anticipate easier error handling in asynchronus
 processing, choice has been made to not rely on `Exception`. Exceptions
-are catched on boundary layer (`infra`), but `core` only rely on [`Status`](src/main/java/banktransfert/Status.java)
+are catched on boundary layer (`infra`), but `core` only rely on [`Status`](src/main/java/banktransfer/core/Status.java)
 construct.
 `Status` can be seen as a very simplified implementation of the `Either`
 (or `LeftRight`) monad.
 
 ## Usage
 
-* [Usecases Tests](src/test/java/banktransfert/infra/UsecasesTest.java)
-* [Concurrency Tests](src/test/java/banktransfert/core/account/inmemory/ConcurrencyUsecaseTest.java)
+* [Usecases Tests](src/test/java/banktransfer/infra/UsecasesTest.java)
+* [Concurrency Tests](src/test/java/banktransfer/core/account/inmemory/ConcurrencyUsecaseTest.java)
 
 
 # Dev's notes
