@@ -100,7 +100,7 @@
                                 <transformer
                                         implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
                                     <manifestEntries>
-                                        <Main-Class>banktransfert.Main</Main-Class>
+                                        <Main-Class>banktransfer.Main</Main-Class>
                                     </manifestEntries>
                                 </transformer>
                             </transformers>
