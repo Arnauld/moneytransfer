@@ -182,7 +182,7 @@ public class WebVerticleIntegrationTest {
         client.post(port, "localhost", "/account")
                 .sendJsonObject(new JsonObject()
                         .put("email", "hog@tyrna.nog")
-                        .put("initial-amount", "500.5"), ar -> {
+                        .put("initial-balance", "500.5"), ar -> {
                     context.assertTrue(ar.succeeded());
                     HttpResponse<Buffer> response = ar.result();
                     context.assertEquals(201, response.statusCode());
@@ -224,7 +224,7 @@ public class WebVerticleIntegrationTest {
         client.post(port, "localhost", "/account")
                 .sendJsonObject(new JsonObject()
                         .put("email", "hog@tyrna.nog")
-                        .put("initial-amount", "500.5€"), ar -> {
+                        .put("initial-balance", "500.5€"), ar -> {
                     context.assertTrue(ar.succeeded());
                     HttpResponse<Buffer> response = ar.result();
                     context.assertEquals(400, response.statusCode());

@@ -119,7 +119,7 @@ public class UsecasesIntegrationTest {
         client.post(port, "localhost", "/account")
                 .sendJsonObject(new JsonObject()
                         .put("email", email)
-                        .put("initial-amount", initialAmount.toPlainString()), ar -> {
+                        .put("initial-balance", initialAmount.toPlainString()), ar -> {
 
                     context.assertTrue(ar.succeeded());
                     HttpResponse<Buffer> response = ar.result();

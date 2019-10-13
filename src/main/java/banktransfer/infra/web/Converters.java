@@ -35,7 +35,7 @@ class Converters {
 
         String amountStr;
         try {
-            amountStr = content.getString("initial-amount");
+            amountStr = content.getString("initial-balance");
         } catch (Exception e) {
             return Status.failure("invalid-amount-format");
         }

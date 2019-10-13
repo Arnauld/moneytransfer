@@ -87,7 +87,83 @@ construct.
 `Status` can be seen as a very simplified implementation of the `Either`
 (or `LeftRight`) monad.
 
-# Usage
+## Usage
 
 * [Usecases Tests](src/test/java/banktransfert/infra/UsecasesTest.java)
 * [Concurrency Tests](src/test/java/banktransfert/core/account/inmemory/ConcurrencyUsecaseTest.java)
+
+
+# Dev's notes
+
+```
+mvn clean package
+java -jar target/bank-transfert-1.0-SNAPSHOT-fat.jar
+```
+
+Account with initial balance of `500`.
+
+```
+curl -d '{"email":"titania@tyrna.nog", "initial-balance":"500"}' \
+     -H "Content-Type: application/json" \
+     -X POST http://localhost:8083/account
+```
+
+```       
+{"account-id":"6b827186-6cec-49b1-ab87-a16719074715"}%
+```
+
+Account with default initial balance (`0`)
+```
+curl -d '{"email":"oberon@tyrna.nog"}' \
+     -H "Content-Type: application/json" \
+     -X POST http://localhost:8083/account
+```
+
+```
+{"account-id":"ee438cf0-eb3c-4aad-9f33-052179e095dd"}%
+```
+
+Transfer money between the two accounts:
+
+```
+curl -d '{"transaction-id":"99a72d4d-b862-4fee-b251-3f60d9ce7846","amount":"150", "source-id":"6b827186-6cec-49b1-ab87-a16719074715","destination-id":"ee438cf0-eb3c-4aad-9f33-052179e095dd"}' \
+     -H "Content-Type: application/json" \
+     -X POST http://localhost:8083/transfer
+```
+```
+{"transaction-id":"99a72d4d-b862-4fee-b251-3f60d9ce7846"}%
+```
+
+Consult `Debited` account:
+
+```
+curl -H "Content-Type: application/json" \
+     -X GET http://localhost:8083/account/6b827186-6cec-49b1-ab87-a16719074715
+```
+```
+{"account-id":"6b827186-6cec-49b1-ab87-a16719074715",
+ "balance":"350",
+ "transactions":[{"transaction-id":"99a72d4d-b862-4fee-b251-3f60d9ce7846",
+                  "status":"Acknowledged",
+                  "source-id":"6b827186-6cec-49b1-ab87-a16719074715",
+                  "destination-id":"ee438cf0-eb3c-4aad-9f33-052179e095dd",
+                  "amount":"150"}]}%
+```
+
+Consult `Credited` account:
+
+```
+curl -H "Content-Type: application/json" \
+     -X GET http://localhost:8083/account/ee438cf0-eb3c-4aad-9f33-052179e095dd
+```
+
+```
+{"account-id":"ee438cf0-eb3c-4aad-9f33-052179e095dd",
+ "balance":"150",
+ "transactions":[{"transaction-id":"99a72d4d-b862-4fee-b251-3f60d9ce7846",
+                  "status":"Credited",
+                  "source-id":"6b827186-6cec-49b1-ab87-a16719074715",
+                  "destination-id":"ee438cf0-eb3c-4aad-9f33-052179e095dd",
+                  "amount":"150"}]
+}%
+```

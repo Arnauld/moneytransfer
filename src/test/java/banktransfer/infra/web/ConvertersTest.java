@@ -39,7 +39,7 @@ public class ConvertersTest {
 
     @Test
     public void should_convert_valid_NewAccount__with_initial_amount_provided() {
-        JsonObject json = new JsonObject().put("email", "titania@@tyrna.nog").put("initial-amount", "500.5");
+        JsonObject json = new JsonObject().put("email", "titania@@tyrna.nog").put("initial-balance", "500.5");
 
         Status<Failure, NewAccount> newAccountOr = converters.toNewAccount(() -> json);
 
@@ -80,7 +80,7 @@ public class ConvertersTest {
 
     @Test
     public void should_not_convert_invalid_NewAccount__invalid_amount_format_provided() {
-        JsonObject json = new JsonObject().put("email", "titania@tyrna.nog").put("initial-amount", "500€");
+        JsonObject json = new JsonObject().put("email", "titania@tyrna.nog").put("initial-balance", "500€");
 
         Status<Failure, NewAccount> newAccountOr = converters.toNewAccount(() -> json);
 
@@ -90,7 +90,7 @@ public class ConvertersTest {
 
     @Test
     public void should_not_convert_invalid_NewAccount__invalid_amount_format_provided__wrong_type() {
-        JsonObject json = new JsonObject().put("email", "titania@tyrna.nog").put("initial-amount", true);
+        JsonObject json = new JsonObject().put("email", "titania@tyrna.nog").put("initial-balance", true);
 
         Status<Failure, NewAccount> newAccountOr = converters.toNewAccount(() -> json);
 
