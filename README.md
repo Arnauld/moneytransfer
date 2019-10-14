@@ -53,7 +53,7 @@ bank.
 
 The 'destination' account will receive the corresponding 'Credit' transaction 
 periodically.
-The 'source' bank will stop send the transaction once the transaction is marked 
+The 'source' bank will stop sending the transaction once it has been marked 
 `Acknowledged`. 
 The transaction is stacked within the 'destination' account.
 One more time, idempotency is ensured by the `transaction-id` global uniqueness,
@@ -64,7 +64,7 @@ preventing i/o error, etc.
 
 ## Acknowledge
 
-The 'destination' account be will receive the 'credit' transaction as long as
+The 'destination' account will receive the 'credit' transaction as long as
 it send the 'Acknowledge' back to the 'source' account.
 
 # Implementation
